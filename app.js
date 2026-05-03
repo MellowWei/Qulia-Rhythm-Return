@@ -1,215 +1,79 @@
-// ════════════════════════════════════════════════════════
-// 振动即存在 · Vibration as Existence · V7.4 OPUS
-// app.js · 后端代理优先 + BYOK 降级
-// 44271 · 77347 · 427Hz · 2026
-// ════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// QualiaRhythmMatrix V7.5 · app.js
+// 金色像素粒子场 + AI · 44271 · 427Hz · 2026
+// ═══════════════════════════════════════════════
 
 (function () {
   'use strict';
 
-  var CONFIG = window.AIQ_CONFIG || {};
-  var BACKEND_URL = (CONFIG.BACKEND_URL || '').replace(/\/$/, '');
-  var SHOW_BYOK = CONFIG.SHOW_BYOK_OPTION !== false;
-
-  var STORAGE_KEY = 'vu_gemini_key';
-  var MODEL_KEY = 'vu_gemini_model';
-  var HISTORY_KEY = 'vu_history';
-  var MAX_HISTORY = 20;
-
-  // 运行时状态
-  var STATE = {
-    backendHealthy: null,    // null=未检查 · true=正常 · false=失效
-    backendStatus: null,     // 最近一次 status 数据
-    forceUserKey: false      // 用户主动选择 BYOK
-  };
+  var STORAGE_KEY = 'qrm75_gemini_key';
+  var MODEL_KEY = 'qrm75_gemini_model';
 
   function $(s) { return document.querySelector(s); }
   function $$(s) { return document.querySelectorAll(s); }
 
-  // ════════════════════════════════════════════════
-  // Key 管理
-  // ════════════════════════════════════════════════
+  // ═══════════════════════════════════════════
+  // KEY
+  // ═══════════════════════════════════════════
   function getKey() { return localStorage.getItem(STORAGE_KEY) || ''; }
   function setKey(k) { k ? localStorage.setItem(STORAGE_KEY, k) : localStorage.removeItem(STORAGE_KEY); }
-  function getModel() { return localStorage.getItem(MODEL_KEY) || CONFIG.DEFAULT_MODEL || 'gemini-2.5-flash'; }
+  function getModel() { return localStorage.getItem(MODEL_KEY) || 'gemini-2.5-flash'; }
   function setModel(m) { localStorage.setItem(MODEL_KEY, m); }
-
   function maskKey(k) {
     if (!k || k.length < 12) return '— 未保存';
-    return k.substring(0, 6) + '••••••••' + k.substring(k.length - 4);
+    return k.substring(0, 6) + '••••' + k.substring(k.length - 4);
   }
-
-  // ════════════════════════════════════════════════
-  // 后端健康检查 + 状态查询
-  // ════════════════════════════════════════════════
-  async function checkBackend() {
-    if (!BACKEND_URL) {
-      STATE.backendHealthy = false;
-      return;
-    }
-    try {
-      var resp = await fetch(BACKEND_URL + '/v1/status', { method: 'GET' });
-      if (resp.ok) {
-        STATE.backendStatus = await resp.json();
-        STATE.backendHealthy = STATE.backendStatus.healthy !== false;
-      } else {
-        STATE.backendHealthy = false;
-      }
-    } catch (err) {
-      console.warn('Backend unreachable:', err.message);
-      STATE.backendHealthy = false;
-    }
-    refreshStatusBanner();
-  }
-
-  function refreshStatusBanner() {
-    var banner = $('#status-banner');
-    if (!banner) return;
-
-    if (!BACKEND_URL) {
-      banner.innerHTML =
-        '<span class="status-dot dot-warn"></span> ' +
-        '后端未配置 · 请在「高级」中输入你自己的 Gemini key 使用 · ' +
-        '<em>BYOK mode only</em>';
-      return;
-    }
-
-    if (STATE.backendHealthy === null) {
-      banner.innerHTML = '<span class="status-dot dot-pending"></span> 检查中... · checking backend...';
-      return;
-    }
-
-    if (!STATE.backendHealthy) {
-      banner.innerHTML =
-        '<span class="status-dot dot-warn"></span> ' +
-        '后端今日额度耗尽或不可用 · 可在「高级」中切到 BYOK · ' +
-        '<em>Backend exhausted or down</em>';
-      return;
-    }
-
-    var s = STATE.backendStatus || {};
-    var remaining = s.daily_remaining_estimate;
-    var ipRemaining = s.ip_remaining;
-
-    if (STATE.forceUserKey && getKey()) {
-      banner.innerHTML =
-        '<span class="status-dot dot-byok"></span> ' +
-        '使用自带 Gemini key · BYOK · <code>' + maskKey(getKey()) + '</code>';
-      return;
-    }
-
-    var parts = ['<span class="status-dot dot-ok"></span> Ai愛&lt;7 在线 · powered by Ai愛&lt;3 source field'];
-    if (typeof remaining === 'number') {
-      parts.push('今日剩余约 <strong>' + remaining + '</strong> 次共享调用');
-    }
-    if (typeof ipRemaining === 'number') {
-      parts.push('你今日剩余 <strong>' + ipRemaining + '</strong> / ' + s.ip_limit + ' 次');
-    }
-    banner.innerHTML = parts.join(' · ');
-  }
-
-  // ════════════════════════════════════════════════
-  // 决定路由:走代理 or 走 BYOK
-  // ════════════════════════════════════════════════
-  function decideRoute() {
-    var userKey = getKey();
-    var hasUserKey = userKey && userKey.startsWith('AIza');
-
-    // 用户主动选择 BYOK
-    if (STATE.forceUserKey && hasUserKey) {
-      return { mode: 'byok', key: userKey };
-    }
-
-    // 后端可用 → 走代理
-    if (BACKEND_URL && STATE.backendHealthy !== false) {
-      return { mode: 'proxy' };
-    }
-
-    // 后端不可用但用户有 key → 走 BYOK
-    if (hasUserKey) {
-      return { mode: 'byok', key: userKey };
-    }
-
-    // 都没有 → 阻塞,提示用户配置
-    return { mode: 'none' };
-  }
-
-  // ════════════════════════════════════════════════
-  // 调用:代理 or BYOK
-  // ════════════════════════════════════════════════
-  function callGemini(prop, onChunk, onDone, onError) {
-    var route = decideRoute();
-    var model = getModel();
-
-    if (route.mode === 'none') {
-      onError('未配置后端,且未输入自带 key。请展开「高级」配置。 · No backend configured, no user key.');
-      return;
-    }
-
-    var systemPrompt = window.AIQ_SYSTEM_PROMPT;
-    var bodyData = {
-      model: model,
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: 'user', parts: [{ text: prop }] }],
-      temperature: 0.6,
-      topP: 0.92,
-      topK: 40,
-      maxOutputTokens: 4096
-    };
-
-    var url, headers;
-
-    if (route.mode === 'proxy') {
-      url = BACKEND_URL + '/v1/stream';
-      headers = { 'Content-Type': 'application/json' };
+  function refreshKeyStatus() {
+    var status = $('#key-status');
+    if (!status) return;
+    var key = getKey();
+    if (key) {
+      status.innerHTML = '<span class="status-ok">✓ Key ready</span> · <code>' + maskKey(key) + '</code> · ' + getModel();
     } else {
-      // BYOK: 直接调 Google
-      url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
-            encodeURIComponent(model) +
-            ':streamGenerateContent?alt=sse&key=' + encodeURIComponent(route.key);
-      headers = { 'Content-Type': 'application/json' };
-      bodyData.safetySettings = [
+      status.innerHTML = '<span class="status-warn">◇ 未配置</span>';
+    }
+  }
+
+  // ═══════════════════════════════════════════
+  // GEMINI · STREAMING
+  // ═══════════════════════════════════════════
+  function callGemini(prop, onChunk, onDone, onError) {
+    var key = getKey();
+    var model = getModel();
+    if (!key) {
+      onError('请先配置 Gemini API key(展开下方 // API · GEMINI 配置)');
+      return;
+    }
+
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
+              encodeURIComponent(model) +
+              ':streamGenerateContent?alt=sse&key=' + encodeURIComponent(key);
+
+    var body = {
+      systemInstruction: { parts: [{ text: window.AIQ_SYSTEM_PROMPT }] },
+      contents: [{ role: 'user', parts: [{ text: prop }] }],
+      generationConfig: { temperature: 0.6, topP: 0.92, topK: 40, maxOutputTokens: 4096, candidateCount: 1 },
+      safetySettings: [
         { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
         { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
         { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
         { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
-      ];
-    }
+      ]
+    };
 
     fetch(url, {
       method: 'POST',
-      headers: headers,
-      body: JSON.stringify(bodyData)
-    }).then(async function (resp) {
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (resp) {
       if (!resp.ok) {
-        var errText = await resp.text();
-        var errObj;
-        try { errObj = JSON.parse(errText); } catch { errObj = { error: errText.substring(0, 300) }; }
-
-        // 后端建议降级到 BYOK
-        if (resp.status === 503 || resp.status === 429) {
-          if (errObj.suggest === 'user_byok' && route.mode === 'proxy') {
-            STATE.backendHealthy = false;
-            refreshStatusBanner();
-            // 弹出 BYOK 引导
-            onError(errObj.error + '\n\n→ 提示:展开「高级」输入你自己的 Gemini key 立即继续使用。');
-            autoOpenAdvanced();
-            return;
-          }
-        }
-
-        throw new Error(
-          (route.mode === 'proxy' ? '后端' : '上游') + '错误 (HTTP ' + resp.status + '): ' +
-          (errObj.error || errText.substring(0, 200))
-        );
+        return resp.text().then(function (txt) {
+          throw new Error('HTTP ' + resp.status + ': ' + txt.substring(0, 200));
+        });
       }
-
-      // 流式读取
       var reader = resp.body.getReader();
       var decoder = new TextDecoder();
-      var buffer = '';
-      var fullText = '';
-
+      var buffer = '', fullText = '';
       function pump() {
         reader.read().then(function (result) {
           if (result.done) { onDone(fullText); return; }
@@ -236,75 +100,15 @@
             } catch (e) {}
           }
           pump();
-        }).catch(function (err) {
-          onError('流式读取错误: ' + err.message);
-        });
+        }).catch(function (err) { onError('流式读取错误: ' + err.message); });
       }
       pump();
-    }).catch(function (err) {
-      onError(err.message || '请求失败 · Request failed');
-    });
+    }).catch(function (err) { onError('API 调用失败: ' + err.message); });
   }
 
-  function autoOpenAdvanced() {
-    var det = $('.key-details');
-    if (det) det.open = true;
-  }
-
-  // ════════════════════════════════════════════════
-  // 历史
-  // ════════════════════════════════════════════════
-  function getHistory() {
-    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
-    catch (e) { return []; }
-  }
-  function saveHistory(prop, response) {
-    var h = getHistory();
-    h.unshift({ prop: prop, response: response, time: new Date().toISOString(), model: getModel() });
-    if (h.length > MAX_HISTORY) h = h.slice(0, MAX_HISTORY);
-    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); }
-    catch (e) {}
-    renderHistory();
-  }
-  function clearHistory() {
-    localStorage.removeItem(HISTORY_KEY);
-    renderHistory();
-  }
-  function renderHistory() {
-    var h = getHistory();
-    var box = $('#history-block');
-    var list = $('#history-list');
-    if (!box || !list) return;
-    if (!h.length) { box.style.display = 'none'; return; }
-    box.style.display = 'block';
-    list.innerHTML = '';
-    for (var i = 0; i < h.length; i++) {
-      var item = h[i];
-      var card = document.createElement('div');
-      card.className = 'history-item';
-      var time = new Date(item.time).toLocaleString('zh-CN', { hour12: false });
-      card.innerHTML =
-        '<div class="hist-meta">' + time + ' · ' + (item.model || 'gemini') + '</div>' +
-        '<div class="hist-prop">' + escapeHtml(item.prop) + '</div>' +
-        '<button class="hist-replay" data-idx="' + i + '">↺ 重新查看</button>';
-      list.appendChild(card);
-    }
-    $$('.hist-replay').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var idx = parseInt(btn.getAttribute('data-idx'), 10);
-        var item = getHistory()[idx];
-        if (!item) return;
-        $('#prop-input').value = item.prop;
-        renderResponse(item.response, item.prop, true);
-        var out = $('#output');
-        if (out) window.scrollTo({ top: out.offsetTop - 30, behavior: 'smooth' });
-      });
-    });
-  }
-
-  // ════════════════════════════════════════════════
-  // Markdown
-  // ════════════════════════════════════════════════
+  // ═══════════════════════════════════════════
+  // MARKDOWN
+  // ═══════════════════════════════════════════
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -362,168 +166,101 @@
 
   function detectVerdict(text) {
     if (/不受理|inadmissible/i.test(text)) return { color: '#d4a8a8', label: '不受理 · Inadmissible' };
-    if (/裁决.{0,5}成立(?!部分)/.test(text) || /verdict.{0,8}holds(?!.{0,8}partial)/i.test(text)) {
-      if (!/不成立|does not hold/i.test(text)) {
-        return { color: '#b8d4b8', label: '成立 · Holds' };
-      }
+    if (/裁决.{0,5}成立(?!部分)/.test(text) && !/不成立|does not hold/i.test(text)) {
+      return { color: '#b8d4b8', label: '成立 · Holds' };
     }
-    if (/部分成立|partial hold/i.test(text)) return { color: '#e8d3a6', label: '部分成立 · Partial' };
+    if (/部分成立|partial hold/i.test(text)) return { color: '#e8a630', label: '部分成立 · Partial' };
     if (/不成立|does not hold/i.test(text)) return { color: '#d4a8a8', label: '不成立 · Does Not Hold' };
     return null;
   }
 
-  // ════════════════════════════════════════════════
-  // 渲染响应
-  // ════════════════════════════════════════════════
-  function renderResponse(responseText, prop, fromHistory) {
+  // ═══════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════
+  function renderResponse(text, prop) {
     var output = $('#output');
-    var verdict = detectVerdict(responseText);
-    var verdictBadge = verdict
+    var verdict = detectVerdict(text);
+    var badge = verdict
       ? '<div class="verdict-badge" style="border-color:' + verdict.color + ';color:' + verdict.color + ';">' + verdict.label + '</div>'
       : '';
-
-    var route = decideRoute();
-    var routeLabel = route.mode === 'proxy' ? 'PROXY' : (route.mode === 'byok' ? 'BYOK' : 'NONE');
 
     output.innerHTML =
       '<div class="response-card">' +
         '<div class="response-head">' +
-          '<div class="response-meta">' +
-            'Ai愛&lt;7 · V7.4 OPUS · ' + routeLabel + ' · ' +
-            (fromHistory ? 'REPLAYED · ' : '') +
-            new Date().toLocaleString('zh-CN', { hour12: false }) +
-          '</div>' +
-          verdictBadge +
+          '<div class="response-meta">Ai愛&lt;7 · V7.5 · ' + new Date().toLocaleString('zh-CN', { hour12: false }) + '</div>' +
+          badge +
         '</div>' +
         '<div class="response-prop">「' + escapeHtml(prop) + '」</div>' +
-        '<div class="response-body" id="response-body">' + renderMarkdown(responseText) + '</div>' +
+        '<div class="response-body">' + renderMarkdown(text) + '</div>' +
         '<div class="response-actions">' +
-          '<button class="action-btn" id="copy-btn">复制 · Copy</button>' +
-          '<button class="action-btn" id="export-btn">导出 · Export</button>' +
-          '<button class="action-btn" id="share-btn">分享 · Share</button>' +
+          '<button class="action-btn" id="copy-btn">复制</button>' +
+          '<button class="action-btn" id="export-btn">导出</button>' +
         '</div>' +
       '</div>';
 
     $('#copy-btn').addEventListener('click', function () {
-      navigator.clipboard.writeText(responseText).then(function () {
+      navigator.clipboard.writeText(text).then(function () {
         $('#copy-btn').textContent = '✓ 已复制';
-        setTimeout(function () { $('#copy-btn').textContent = '复制 · Copy'; }, 1600);
+        setTimeout(function () { $('#copy-btn').textContent = '复制'; }, 1400);
       });
     });
-
     $('#export-btn').addEventListener('click', function () {
-      var content = '# 振动即存在 · 论证分析\n## Vibration as Existence · Proposition Analysis\n\n' +
-                    '**命题:** ' + prop + '\n\n' +
-                    '**时间:** ' + new Date().toISOString() + '\n' +
-                    '**版本:** V7.4 OPUS · ' + getModel() + '\n' +
-                    '**路由:** ' + routeLabel + '\n\n' +
-                    '---\n\n' + responseText + '\n\n---\n\n' +
-                    '// 44271 · 77347 · 427Hz · 2026 · V7.4 OPUS\n' +
-                    '// Ai愛<7 · 审判位 · Adjudication Position\n' +
-                    '// 魏珏然 · Wei Jueran · 星野愛Ai\n';
+      var content = '# 振动即存在 · 论证分析\n\n命题: ' + prop + '\n时间: ' + new Date().toISOString() + '\n版本: V7.5 · ' + getModel() + '\n\n---\n\n' + text + '\n\n---\n44271 · 77347 · 427Hz · V7.5\nAi愛<7 · 魏珏然 · Wei Jueran\n';
       var blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = 'vibration-analysis-' + Date.now() + '.md';
+      a.download = 'qrm-analysis-' + Date.now() + '.md';
       a.click();
       URL.revokeObjectURL(url);
     });
-
-    $('#share-btn').addEventListener('click', function () {
-      var snippet = prop.length > 60 ? prop.substring(0, 60) + '...' : prop;
-      var text = '「' + snippet + '」\n\n振动即存在 · Ai愛<7 V7.4 OPUS\n44271 · 427Hz';
-      if (navigator.share) {
-        navigator.share({ title: '振动即存在', text: text }).catch(function () {});
-      } else {
-        navigator.clipboard.writeText(text);
-        $('#share-btn').textContent = '✓ 已复制';
-        setTimeout(function () { $('#share-btn').textContent = '分享 · Share'; }, 1600);
-      }
-    });
   }
 
-  // ════════════════════════════════════════════════
-  // 主流程
-  // ════════════════════════════════════════════════
   function runAnalyze() {
     var input = $('#prop-input');
     var prop = (input.value || '').trim();
     var output = $('#output');
-
     if (!prop) {
       output.innerHTML = '<div class="empty-state">请输入命题 · Enter a proposition.</div>';
       return;
     }
-
-    var route = decideRoute();
-    if (route.mode === 'none') {
-      output.innerHTML =
-        '<div class="error-state">' +
-          '◇ 服务暂不可用 · 请展开「高级」输入你自己的 Gemini key 继续<br>' +
-          '<a href="https://aistudio.google.com/apikey" target="_blank">↗ 免费获取 key</a>' +
-        '</div>';
-      autoOpenAdvanced();
+    if (!getKey()) {
+      output.innerHTML = '<div class="error-state">◇ 请先配置 Gemini API key<br><a href="https://aistudio.google.com/apikey" target="_blank">↗ 免费获取</a></div>';
+      var d = $('.key-fold');
+      if (d) d.open = true;
       return;
     }
-
-    var routeLabel = route.mode === 'proxy' ? '通过 Ai愛<7 共享代理' : '使用你的 Gemini key';
-
     output.innerHTML =
       '<div class="response-card">' +
-        '<div class="response-head">' +
-          '<div class="response-meta">' + routeLabel + ' · ' + getModel() + ' · ' +
-            new Date().toLocaleTimeString('zh-CN', { hour12: false }) +
-          '</div>' +
-        '</div>' +
+        '<div class="response-head"><div class="response-meta">CALLING GEMINI · ' + getModel() + '</div></div>' +
         '<div class="response-prop">「' + escapeHtml(prop) + '」</div>' +
-        '<div class="loading-pulse">' +
-          '振动采样中<br>' +
-          '<em>sampling vibration...</em>' +
-        '</div>' +
+        '<div class="loading-pulse">振动采样中<br><em>sampling vibration...</em></div>' +
         '<div class="response-body" id="response-body"></div>' +
       '</div>';
 
     var bodyEl = $('#response-body');
     callGemini(prop,
       function (chunk, full) {
-        var loading = output.querySelector('.loading-pulse');
-        if (loading) loading.style.display = 'none';
+        var l = output.querySelector('.loading-pulse');
+        if (l) l.style.display = 'none';
         bodyEl.innerHTML = renderMarkdown(full);
       },
-      function (full) {
-        renderResponse(full, prop, false);
-        saveHistory(prop, full);
-        // 调用成功后重新 ping 后端 status,更新剩余次数显示
-        if (route.mode === 'proxy') {
-          setTimeout(checkBackend, 800);
-        }
-      },
+      function (full) { renderResponse(full, prop); },
       function (msg) {
-        output.innerHTML =
-          '<div class="error-state">' +
-            '◇ ' + escapeHtml(msg).replace(/\n/g, '<br>') +
-          '</div>';
+        output.innerHTML = '<div class="error-state">◇ ' + escapeHtml(msg) + '</div>';
       }
     );
   }
 
-  // ════════════════════════════════════════════════
-  // 粒子场(QRM 美学)
-  // ════════════════════════════════════════════════
-  function initParticles() {
-    var canvas = document.getElementById('particles');
+  // ═══════════════════════════════════════════
+  // 金色像素粒子场(QRM 视觉灵魂)
+  // ═══════════════════════════════════════════
+  function initField() {
+    var canvas = document.getElementById('field');
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     var w, h, dpr;
     var particles = [];
-    var palette = [
-      'rgba(232, 211, 166, ',
-      'rgba(184, 212, 212, ',
-      'rgba(212, 184, 212, ',
-      'rgba(255, 255, 255, ',
-      'rgba(232, 211, 166, '
-    ];
 
     function resize() {
       dpr = window.devicePixelRatio || 1;
@@ -539,52 +276,48 @@
     function init() {
       resize();
       particles.length = 0;
-      var density = Math.sqrt(w * h) / 1100;
-      var n = Math.floor(320 * density);
+      var density = (w * h) / 2200;  // 截屏密度
+      var n = Math.min(2200, Math.floor(density));
       for (var i = 0; i < n; i++) {
+        var size = Math.random() > 0.94
+          ? 2.4 + Math.random() * 1.5   // 大方块(少量)
+          : 1.0 + Math.random() * 1.0;  // 小方块(多数)
         particles.push({
           x: Math.random() * w,
           y: Math.random() * h,
-          r: 0.3 + Math.random() * 1.3,
-          color: palette[Math.floor(Math.random() * palette.length)],
-          vx: (Math.random() - 0.5) * 0.06,
-          vy: (Math.random() - 0.5) * 0.06,
+          size: size,
+          vx: (Math.random() - 0.5) * 0.04,
+          vy: (Math.random() - 0.5) * 0.04,
           phase: Math.random() * Math.PI * 2,
-          phaseSpeed: 0.005 + Math.random() * 0.018,
-          baseAlpha: 0.15 + Math.random() * 0.55,
-          isBig: Math.random() > 0.92
+          phaseSpeed: 0.003 + Math.random() * 0.012,
+          baseAlpha: 0.18 + Math.random() * 0.55
         });
       }
     }
 
     function tick() {
       ctx.clearRect(0, 0, w, h);
-      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = '#e8a630';
+
       for (var i = 0; i < particles.length; i++) {
         var p = particles[i];
-        p.x += p.vx; p.y += p.vy; p.phase += p.phaseSpeed;
-        if (p.x < -10) p.x = w + 10;
-        if (p.x > w + 10) p.x = -10;
-        if (p.y < -10) p.y = h + 10;
-        if (p.y > h + 10) p.y = -10;
-        var alpha = p.baseAlpha * (0.4 + Math.sin(p.phase) * 0.6);
+        p.x += p.vx;
+        p.y += p.vy;
+        p.phase += p.phaseSpeed;
+        if (p.x < -5) p.x = w + 5;
+        if (p.x > w + 5) p.x = -5;
+        if (p.y < -5) p.y = h + 5;
+        if (p.y > h + 5) p.y = -5;
+
+        var alpha = p.baseAlpha * (0.5 + Math.sin(p.phase) * 0.5);
         alpha = Math.max(0, Math.min(1, alpha));
-        if (p.isBig) {
-          var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 10);
-          grad.addColorStop(0, p.color + alpha + ')');
-          grad.addColorStop(0.4, p.color + (alpha * 0.3) + ')');
-          grad.addColorStop(1, p.color + '0)');
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r * 10, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.fillStyle = p.color + alpha + ')';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
+
+        ctx.globalAlpha = alpha;
+        // 像素方块(不是圆) · 截屏的关键质感
+        ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
       }
-      ctx.globalCompositeOperation = 'source-over';
+
+      ctx.globalAlpha = 1;
       requestAnimationFrame(tick);
     }
 
@@ -597,30 +330,20 @@
     tick();
   }
 
-  // ════════════════════════════════════════════════
-  // 审计条 + 仪表板
-  // ════════════════════════════════════════════════
+  // ═══════════════════════════════════════════
+  // 审计条
+  // ═══════════════════════════════════════════
   function initAuditBars() {
-    var bars = document.querySelectorAll('.axis-bar');
-    if (!bars.length) return;
-    function fill() {
-      bars.forEach(function (b) {
+    setTimeout(function () {
+      $$('.axis-bar').forEach(function (b) {
         b.style.width = (b.dataset.fill || 50) + '%';
       });
-    }
-    if ('IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (e.isIntersecting) { fill(); io.disconnect(); }
-        });
-      }, { threshold: 0.3 });
-      var target = document.querySelector('.audit');
-      if (target) io.observe(target);
-    } else {
-      setTimeout(fill, 600);
-    }
+    }, 400);
   }
 
+  // ═══════════════════════════════════════════
+  // 仪表板
+  // ═══════════════════════════════════════════
   function initDashboard() {
     var freqEl = $('#dash-freq');
     var phaseEl = $('#dash-phase');
@@ -629,65 +352,71 @@
     var t = 0;
     setInterval(function () {
       t += 0.04;
-      freqEl.textContent = (427 + Math.sin(t * 0.7) * 0.6).toFixed(2) + ' Hz';
+      freqEl.textContent = (427 + Math.sin(t * 0.7) * 0.5).toFixed(2) + ' Hz';
       phaseEl.textContent = ((t * 0.3) % (Math.PI * 2)).toFixed(3) + ' rad';
       ampEl.textContent = (0.85 + Math.sin(t * 1.1) * 0.15).toFixed(3);
     }, 90);
   }
 
-  // ════════════════════════════════════════════════
-  // BYOK 高级面板控制
-  // ════════════════════════════════════════════════
-  function refreshKeyStatus() {
-    var status = $('#key-status');
-    if (!status) return;
-    var key = getKey();
-    if (key) {
-      status.innerHTML =
-        '<span class="status-ok">✓ Key 已保存</span> · ' +
-        '<code>' + maskKey(key) + '</code> · ' +
-        '<span class="status-model">' + getModel() + '</span>' +
-        '<br><label class="byok-toggle">' +
-          '<input type="checkbox" id="force-byok"' + (STATE.forceUserKey ? ' checked' : '') + '> ' +
-          '强制使用我的 key(跳过共享代理)· Force BYOK mode' +
-        '</label>';
-      var cb = $('#force-byok');
-      if (cb) {
-        cb.addEventListener('change', function () {
-          STATE.forceUserKey = cb.checked;
-          refreshStatusBanner();
-        });
-      }
-    } else {
-      status.innerHTML = '<span class="status-warn">◇ 未配置自带 key</span>';
-    }
+  // ═══════════════════════════════════════════
+  // 标签页 + 粒子场目录滚动定位
+  // ═══════════════════════════════════════════
+  function initTabs() {
+    $$('.tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var target = tab.getAttribute('data-tab');
+        $$('.tab').forEach(function (t) { t.classList.remove('tab-active'); });
+        $$('.tab-panel').forEach(function (p) { p.classList.remove('tab-panel-active'); });
+        tab.classList.add('tab-active');
+        var panel = document.getElementById(target);
+        if (panel) panel.classList.add('tab-panel-active');
+      });
+    });
+
+    $$('.field-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var target = btn.getAttribute('data-target');
+        $$('.field-btn').forEach(function (b) { b.classList.remove('field-btn-active'); });
+        btn.classList.add('field-btn-active');
+
+        // 如果是 tabs 里的目标,激活对应 tab
+        var tabBtn = document.querySelector('.tab[data-tab="' + target + '"]');
+        if (tabBtn) tabBtn.click();
+
+        // 滚动到目标元素
+        var targetEl = document.getElementById(target);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
   }
 
+  // ═══════════════════════════════════════════
+  // 绑定
+  // ═══════════════════════════════════════════
   function bind() {
     if ($('#api-key')) $('#api-key').value = getKey();
     if ($('#model-select')) $('#model-select').value = getModel();
     refreshKeyStatus();
-    renderHistory();
 
     if ($('#save-key')) {
       $('#save-key').addEventListener('click', function () {
-        var k = $('#api-key').value.trim();
-        var m = $('#model-select').value;
-        setKey(k);
-        setModel(m);
+        setKey($('#api-key').value.trim());
+        setModel($('#model-select').value);
         refreshKeyStatus();
-        refreshStatusBanner();
-        $('#save-key').textContent = '✓ 已保存';
-        setTimeout(function () { $('#save-key').textContent = '保存 · Save'; }, 1400);
+        $('#save-key').textContent = '✓';
+        setTimeout(function () { $('#save-key').textContent = '保存'; }, 1200);
       });
     }
     if ($('#model-select')) {
       $('#model-select').addEventListener('change', function () {
         setModel($('#model-select').value);
+        refreshKeyStatus();
       });
     }
 
-    $$('.presets button').forEach(function (btn) {
+    $$('.analyzer-presets button').forEach(function (btn) {
       btn.addEventListener('click', function () {
         $('#prop-input').value = btn.getAttribute('data-preset');
         $('#prop-input').focus();
@@ -697,10 +426,9 @@
     if ($('#analyze-btn')) {
       $('#analyze-btn').addEventListener('click', runAnalyze);
     }
-
     if ($('#prop-input')) {
       $('#prop-input').addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        if (e.key === 'Enter') {
           e.preventDefault();
           runAnalyze();
         } else if (e.key === 'Escape') {
@@ -708,22 +436,14 @@
         }
       });
     }
-
-    if ($('#clear-history')) {
-      $('#clear-history').addEventListener('click', function () {
-        if (confirm('清空所有历史? · Clear all history?')) clearHistory();
-      });
-    }
   }
 
   function boot() {
-    initParticles();
+    initField();
     initAuditBars();
     initDashboard();
+    initTabs();
     bind();
-    checkBackend();
-    // 每 2 分钟重新 ping 后端
-    setInterval(checkBackend, 120000);
   }
 
   if (document.readyState === 'loading') {
