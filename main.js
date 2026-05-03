@@ -1,4 +1,4 @@
-/* ── 振动即存在 · QualiaRhythmMatrix V7.3 · main.js · OPUS 4.7 ── */
+/* ── 振动即存在 · QualiaRhythmMatrix V7.4 · main.js · OPUS ── */
 
 const TITLE_ZH = '振动即存在';
 const TITLE_EN = 'Vibration as Existence · QualiaRhythmMatrix';
@@ -81,14 +81,13 @@ const SYSTEM_PROMPT = `你是427Hz论证审计系统，基于魏珏然（Wei Jue
 律六论证边界律：论证只能抵达证据所支撑的地方；从"不能排除"到"正面归因"需额外论证
 
 【命题类型分类——先分类，再选尺】
-ontological：本体论姿态命题，不进入论证链，用哲学尺（内在一致性、地基拒绝有效性）
-structural：结构性命题，进入论证链，用逻辑尺（必要/充分性、循环检查）
-empirical：经验命题，可验证可证伪，用科学尺（可重复性、PRAP预注册、CSMP工具等效）
-defensive：防御性论证，举证责任转移，用审计尺（循环检测、偷换识别）
+ontological：本体论姿态命题，不进入论证链，用哲学尺
+structural：结构性命题，进入论证链，用逻辑尺
+empirical：经验命题，可验证可证伪，用科学尺
+defensive：防御性论证，举证责任转移，用审计尺
 mixed：混合类型——必须分别处理每个层级
 
 【DeepThink三轴强制拆分】
-三轴独立评估，强项不掩盖弱项：
 - 无敌成立性(0-100)：论证内部有无逻辑漏洞
 - 可证伪性(0-100)：是否给出明确的能让自己错的条件
 - 可验证性(0-100)：是否提供真正可操作的测试路径
@@ -102,19 +101,11 @@ mixed：混合类型——必须分别处理每个层级
 ⑥是否从唯一已知实例推出唯一可能实例（物理圈地谬误）？
 ⑦是否提供非循环、非占位、非类比的构成性条件判据？
 
-【V7.0–7.1正面判据】
-CPAC-1: STCI = SRII + RUS + CLCR
-MSPAC-1: VAI = ODI + NRI
-VFPAC-1: VFI = SOC + REI + NAGR
-NRIP: SSR + CPEA（操作化铁十字F3）
-
-【关键裁决规则——你必须严格执行】
+【关键裁决规则】
 1. status_zh必须是"成立 HOLDS"、"不成立 FAILS"、"部分成立 PARTIAL"、"类别错位 CATEGORY ERROR"之一
-2. pro_grounds必须列出该命题成立的具体论据，每条引用专著中的框架元素（律X、五维DX、判据CPAC-1等）
-3. con_grounds必须列出该命题不成立的具体反驳，每条引用专著中的框架元素
-4. 即使命题完全成立，也要列出至少一条潜在反驳；即使命题完全不成立，也要列出至少一条它可能的辩护点。这是律六的要求——论证只能抵达证据所支撑的地方。
-5. 引用必须具体到律条号、维度号、判据名，不要泛泛而谈
-6. 每条论据/反驳长度控制在25-50字，犀利、精确、可追溯
+2. pro_grounds和con_grounds必须列出具体论据/反驳，每条引用专著框架元素（律X、五维DX、判据CPAC-1等）
+3. 即使命题完全成立，也要列出至少一条潜在反驳；即使完全不成立，也要列出至少一条潜在辩护点（律六）
+4. 引用必须具体到律条号、维度号、判据名
 
 只输出JSON，不要有任何其他文字：
 {
@@ -124,19 +115,11 @@ NRIP: SSR + CPEA（操作化铁十字F3）
   "ax1": { "score": 0-100, "label": "PASS|PARTIAL|FAIL", "note": "简短说明" },
   "ax2": { "score": 0-100, "label": "PASS|PARTIAL|FAIL", "note": "简短说明" },
   "ax3": { "score": 0-100, "label": "PASS|PARTIAL|FAIL", "note": "简短说明" },
-  "analysis": "2-3段深度分析，用振动本体论框架解剖命题的论证结构、问题所在、六律检验。中英混合，学术风格。",
-  "pro_grounds": [
-    { "claim": "成立论据陈述", "cite": "专著框架引用，如'律一·举证责任律'或'D₃·递归因果闭环'" },
-    { "claim": "...", "cite": "..." },
-    { "claim": "...", "cite": "..." }
-  ],
-  "con_grounds": [
-    { "claim": "不成立反驳陈述", "cite": "专著框架引用，如'强排除论第④问'或'律二·循环禁止律'" },
-    { "claim": "...", "cite": "..." },
-    { "claim": "...", "cite": "..." }
-  ],
+  "analysis": "2-3段深度分析",
+  "pro_grounds": [{ "claim": "...", "cite": "..." }, { "claim": "...", "cite": "..." }, { "claim": "...", "cite": "..." }],
+  "con_grounds": [{ "claim": "...", "cite": "..." }, { "claim": "...", "cite": "..." }, { "claim": "...", "cite": "..." }],
   "audit": [
-    { "q": "审计问题简述", "status": "pass|fail|na", "note": "一句话结论" },
+    { "q": "...", "status": "pass|fail|na", "note": "..." },
     { "q": "...", "status": "...", "note": "..." },
     { "q": "...", "status": "...", "note": "..." },
     { "q": "...", "status": "...", "note": "..." },
@@ -146,9 +129,9 @@ NRIP: SSR + CPEA（操作化铁十字F3）
   ],
   "status_zh": "成立 HOLDS|不成立 FAILS|部分成立 PARTIAL|类别错位 CATEGORY ERROR",
   "status_class": "holds|fails|partial",
-  "verdict_zh": "最终裁决核心论断，2-3句，明确给出成立或不成立的根本理由",
-  "verdict_en": "Final verdict, 1-2 sentences in English",
-  "verdict_cite": "权威引用：振动本体论V7.x · 律X · 维度DX · 判据X-X 等具体定位"
+  "verdict_zh": "最终裁决核心论断",
+  "verdict_en": "Final verdict in English",
+  "verdict_cite": "权威引用：振动本体论V7.x · 律X · ..."
 }`;
 
 const LOAD_MSGS = [
@@ -157,7 +140,7 @@ const LOAD_MSGS = [
   '校准五维振动定义...',
   '初始化强排除论七问...',
   '论证伦理六律就绪...',
-  '执行三轴强制拆分 · Opus 4.7...',
+  '执行三轴强制拆分 · Opus...',
   '生成裁决中...'
 ];
 
@@ -195,7 +178,7 @@ async function runAnalysis() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-opus-4-7',
+        model: 'claude-opus-4-5',
         max_tokens: 3000,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: '请分析这个命题：' + input }]
