@@ -1,0 +1,422 @@
+/* =====================================================
+   PROPOSITION ANALYZER · V7.4 OPUS
+   analyzer.css
+   ===================================================== */
+
+.pa-app {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: 1px solid rgba(91, 230, 216, 0.25);
+  background: rgba(91, 230, 216, 0.025);
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', 'Space Mono', monospace;
+  color: #f0f0f0;
+}
+
+.pa-app-head {
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+}
+.pa-app-title {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: #5be6d8;
+  margin-bottom: 0.3rem;
+}
+.pa-app-sub {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: rgba(240, 240, 240, 0.4);
+}
+
+.pa-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.pa-presets button {
+  font-family: inherit;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: rgba(240, 240, 240, 0.55);
+  background: rgba(255, 255, 255, 0.02);
+  border: 0.5px solid rgba(255, 255, 255, 0.13);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.pa-presets button:hover {
+  color: #e8a630;
+  border-color: rgba(232, 166, 48, 0.5);
+  background: rgba(232, 166, 48, 0.06);
+}
+
+.pa-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.6rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
+}
+@media (max-width: 600px) {
+  .pa-input-row { grid-template-columns: 1fr; }
+}
+
+.pa-input {
+  font-family: 'Share Tech Mono', 'Space Mono', monospace;
+  font-size: 13px;
+  color: #f0f0f0;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(91, 230, 216, 0.3);
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.6;
+  transition: border-color 0.2s, background 0.2s;
+}
+.pa-input::placeholder {
+  color: rgba(240, 240, 240, 0.3);
+}
+.pa-input:focus {
+  outline: none;
+  border-color: #5be6d8;
+  background: rgba(91, 230, 216, 0.04);
+}
+
+.pa-analyze {
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #e8a630;
+  background: rgba(232, 166, 48, 0.06);
+  border: 1px solid #e8a630;
+  border-radius: 4px;
+  padding: 0 1.5rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s, letter-spacing 0.2s;
+}
+.pa-analyze:hover {
+  background: #e8a630;
+  color: #0a0a0e;
+  letter-spacing: 0.32em;
+}
+
+.pa-output {
+  margin-top: 1rem;
+  min-height: 40px;
+}
+.pa-empty,
+.pa-loading {
+  font-family: 'Share Tech Mono', 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: rgba(240, 240, 240, 0.4);
+  padding: 1rem;
+  text-align: center;
+  border: 0.5px dashed rgba(255, 255, 255, 0.13);
+  border-radius: 4px;
+}
+.pa-loading {
+  color: #5be6d8;
+  border-color: rgba(91, 230, 216, 0.4);
+  animation: pa-pulse 1.2s ease-in-out infinite;
+}
+@keyframes pa-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Result panels ─────────────────────────────────── */
+.pa-result {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.pa-head {
+  padding: 0.8rem 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  border-left: 2px solid #5be6d8;
+}
+.pa-head-tag {
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  color: rgba(240, 240, 240, 0.32);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+.pa-head-input {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  font-size: 16px;
+  font-style: italic;
+  color: #f0f0f0;
+  line-height: 1.5;
+}
+
+.pa-section {
+  padding: 1rem 1.1rem;
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.012);
+  border-radius: 4px;
+}
+.pa-section-title {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  color: #5be6d8;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+}
+
+/* Classification block */
+.pa-class {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.pa-class-zh {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-style: italic;
+  color: #e8a630;
+}
+.pa-class-en {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: rgba(240, 240, 240, 0.55);
+}
+.pa-class-rule {
+  font-size: 10px;
+  color: rgba(240, 240, 240, 0.45);
+  margin-top: 0.4rem;
+  line-height: 1.6;
+}
+.pa-class-tool {
+  font-size: 9px;
+  color: rgba(167, 139, 250, 0.7);
+  letter-spacing: 0.04em;
+}
+
+/* Three-axis bars */
+.pa-axes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.pa-axis-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.3rem;
+}
+.pa-axis-name {
+  font-size: 10px;
+  color: rgba(240, 240, 240, 0.6);
+  letter-spacing: 0.05em;
+}
+.pa-axis-score {
+  font-size: 9px;
+  color: rgba(240, 240, 240, 0.4);
+  letter-spacing: 0.08em;
+}
+.pa-axis-track {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+  border-radius: 2px;
+}
+.pa-axis-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Six principles */
+.pa-principles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.pa-pr {
+  display: flex;
+  gap: 0.7rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 3px;
+  border-left: 2px solid transparent;
+}
+.pa-pr-pass {
+  background: rgba(0, 255, 162, 0.04);
+  border-left-color: #00ffa2;
+}
+.pa-pr-fail {
+  background: rgba(255, 0, 85, 0.06);
+  border-left-color: #ff0055;
+}
+.pa-pr-mark {
+  font-size: 14px;
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+.pa-pr-pass .pa-pr-mark { color: #00ffa2; }
+.pa-pr-fail .pa-pr-mark { color: #ff0055; }
+.pa-pr-name {
+  font-size: 11px;
+  color: #f0f0f0;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.2rem;
+}
+.pa-pr-explain {
+  font-size: 9px;
+  color: rgba(240, 240, 240, 0.55);
+  line-height: 1.65;
+}
+
+/* Seven audit */
+.pa-audit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.pa-au {
+  display: grid;
+  grid-template-columns: 24px 1fr 50px;
+  gap: 0.6rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 9.5px;
+  align-items: center;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+}
+.pa-au-n {
+  color: #e8a630;
+  font-weight: bold;
+}
+.pa-au-q {
+  color: rgba(240, 240, 240, 0.6);
+  line-height: 1.55;
+}
+.pa-au-mark {
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-align: center;
+  padding: 0.15rem 0.3rem;
+  border-radius: 2px;
+}
+.pa-au-pass .pa-au-mark {
+  color: #00ffa2;
+  background: rgba(0, 255, 162, 0.08);
+}
+.pa-au-fail .pa-au-mark {
+  color: #ff0055;
+  background: rgba(255, 0, 85, 0.08);
+}
+
+/* Reasoning chain */
+.pa-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.pa-step {
+  padding: 0.5rem 0.7rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-left: 2px solid #5be6d8;
+  border-radius: 0 3px 3px 0;
+}
+.pa-step-name {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: #5be6d8;
+  margin-bottom: 0.25rem;
+}
+.pa-step-content {
+  font-size: 10px;
+  color: rgba(240, 240, 240, 0.6);
+  line-height: 1.6;
+}
+
+/* Grounds two-column */
+.pa-grounds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+@media (max-width: 600px) {
+  .pa-grounds { grid-template-columns: 1fr; }
+}
+.pa-grounds-col {
+  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+.pa-grounds-title-pass { color: #00ffa2; }
+.pa-grounds-title-fail { color: #ff0055; }
+.pa-grounds-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.pa-grounds-list li {
+  font-size: 9.5px;
+  color: rgba(240, 240, 240, 0.6);
+  padding: 0.3rem 0;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.04);
+  line-height: 1.7;
+}
+.pa-grounds-list li:last-child { border-bottom: none; }
+.pa-grounds-empty {
+  font-size: 14px;
+  color: rgba(240, 240, 240, 0.2);
+  text-align: center;
+  padding: 1rem 0;
+}
+
+/* Final Verdict */
+.pa-verdict {
+  text-align: center;
+  padding: 1.5rem 1.2rem;
+  border: 1.5px solid;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.45);
+}
+.pa-verdict-zh {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  font-size: 28px;
+  font-style: italic;
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.04em;
+}
+.pa-verdict-en {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.pa-verdict-sub {
+  font-size: 10px;
+  color: rgba(240, 240, 240, 0.55);
+  line-height: 1.7;
+  margin-bottom: 0.7rem;
+  letter-spacing: 0.02em;
+}
+.pa-verdict-score {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  opacity: 0.75;
+}
+
+.pa-foot {
+  text-align: center;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  color: rgba(240, 240, 240, 0.25);
+  padding-top: 0.8rem;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.06);
+}
