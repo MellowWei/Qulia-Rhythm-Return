@@ -1,6 +1,5 @@
 /* ── 振动即存在 · QualiaRhythmMatrix V7.2 · main.js ── */
 
-/* ── Typewriter ── */
 const TITLE_ZH = '振动即存在';
 const TITLE_EN = 'Vibration as Existence · QualiaRhythmMatrix';
 
@@ -27,7 +26,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }, 500);
 
-  /* ── Mono tabs ── */
   document.querySelectorAll('.mono-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       const idx = parseInt(tab.dataset.mono);
@@ -36,7 +34,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /* ── Logic node tooltips ── */
   const tooltip = document.getElementById('lnode-tooltip');
   document.querySelectorAll('.lnode').forEach(node => {
     node.addEventListener('mouseenter', e => {
@@ -55,7 +52,6 @@ window.addEventListener('DOMContentLoaded', () => {
     tooltip.style.top  = Math.max(y, 8) + 'px';
   }
 
-  /* ── Proposition Analyzer ── */
   document.querySelectorAll('.sb-ex').forEach(tag => {
     tag.addEventListener('click', () => {
       document.getElementById('audit-input').value = tag.dataset.v;
@@ -67,7 +63,6 @@ window.addEventListener('DOMContentLoaded', () => {
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') runAnalysis(); });
 });
 
-/* ── System prompt: full vibration ontology framework ── */
 const SYSTEM_PROMPT = `你是427Hz论证审计系统，基于魏珏然（Wei Jueran）哲学专著《振动即存在》（Vibration as Existence，V7.1–7.2）运作。
 
 你的核心任务：对用户输入的命题给出强有力的、有依据的、可追溯的论证分析——必须明确指出命题为什么成立、为什么不成立，每一条都引用专著中的具体框架元素作为依据。
@@ -193,11 +188,8 @@ async function runAnalysis() {
   sbShow('sb-loading');
   startLoadCycle();
 
-  /* ── PROXY URL ──
-     Replace this with your Vercel deployment URL after running `vercel`
-     Example: https://qrm-proxy-mellow.vercel.app/api/analyze
-     The proxy keeps your API key safe on the server side. */
-  const PROXY_URL = 'https://YOUR-VERCEL-PROJECT.vercel.app/api/analyze';
+  /* Vercel proxy URL — 已配置 */
+  const PROXY_URL = 'https://qrm-proxy.vercel.app/api/analyze';
 
   try {
     const resp = await fetch(PROXY_URL, {
@@ -220,7 +212,7 @@ async function runAnalysis() {
   } catch(e) {
     stopLoadCycle();
     const el = document.getElementById('sb-error-msg');
-    if (el) el.textContent = '论证引擎连接失败 · ' + e.message + '\n请确认已部署Vercel代理并在main.js中更新PROXY_URL';
+    if (el) el.textContent = '论证引擎连接失败 · ' + e.message;
     sbShow('sb-error');
   } finally {
     btn.disabled = false;
@@ -246,7 +238,6 @@ function renderResult(prop, r) {
   const an = document.getElementById('r-analysis');
   if (an) an.textContent = r.analysis || '';
 
-  /* Pro / Con grounds */
   const renderGrounds = (id, items, emptyMsg) => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -277,7 +268,6 @@ function renderResult(prop, r) {
   renderGrounds('r-pro', r.pro_grounds, '无强论据 · No strong grounds');
   renderGrounds('r-con', r.con_grounds, '无强反驳 · No strong objections');
 
-  /* Audit list */
   const auditEl = document.getElementById('r-audit');
   if (auditEl) {
     auditEl.innerHTML = '';
@@ -292,7 +282,6 @@ function renderResult(prop, r) {
     });
   }
 
-  /* Verdict block */
   const stEl = document.getElementById('r-verdict-status');
   if (stEl) {
     stEl.textContent = r.status_zh || '';
