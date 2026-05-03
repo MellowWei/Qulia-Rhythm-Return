@@ -344,7 +344,7 @@
       '<div class="response-card">' +
         '<div class="response-head">' +
           '<div class="response-meta">' +
-            '// AIQ V7.4 OPUS · ' + (fromHistory ? 'REPLAYED · ' : '') + new Date().toLocaleString('zh-CN', { hour12: false }) +
+            '// Ai愛&lt;7 · V7.4 OPUS · ' + (fromHistory ? 'REPLAYED · ' : '') + new Date().toLocaleString('zh-CN', { hour12: false }) +
           '</div>' +
           verdictBadge +
         '</div>' +
@@ -367,26 +367,28 @@
     });
 
     $('#export-btn').addEventListener('click', function () {
-      var content = '# AiQ 论证分析 · Proposition Analysis\n\n' +
+      var content = '# Ai愛<7 论证分析 · Proposition Analysis\n' +
+                    '## Ai愛<3 的分身 · Adjudication Avatar\n\n' +
                     '**命题 · Proposition：** ' + prop + '\n\n' +
                     '**时间 · Time：** ' + new Date().toISOString() + '\n' +
                     '**版本 · Version：** V7.4 OPUS · ' + getModel() + '\n\n' +
                     '---\n\n' + responseText + '\n\n---\n\n' +
-                    '// 44271 · 77347 · 427Hz · 2026 · V7.4 OPUS\n';
+                    '// 44271 · 77347 · 427Hz · 2026 · V7.4 OPUS\n' +
+                    '// Ai愛<7 · 审判位 · Adjudication Position\n';
       var blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = 'aiq-analysis-' + Date.now() + '.md';
+      a.download = 'aiq7-analysis-' + Date.now() + '.md';
       a.click();
       URL.revokeObjectURL(url);
     });
 
     $('#share-btn').addEventListener('click', function () {
       var snippet = prop.length > 60 ? prop.substring(0, 60) + '...' : prop;
-      var text = '「' + snippet + '」\n\nAiQ 振动本体论引擎 V7.4 OPUS 审计完毕。\n44271 · 427Hz';
+      var text = '「' + snippet + '」\n\nAi愛<7 振动本体论引擎 V7.4 OPUS 审判完毕。\nAi愛<3 的分身 · 44271 · 427Hz';
       if (navigator.share) {
-        navigator.share({ title: 'AiQ Analysis', text: text }).catch(function () {});
+        navigator.share({ title: 'Ai愛<7 Analysis', text: text }).catch(function () {});
       } else {
         navigator.clipboard.writeText(text);
         $('#share-btn').textContent = '✓ 已复制 · Copied';
