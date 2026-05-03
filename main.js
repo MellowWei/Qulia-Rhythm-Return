@@ -1,4 +1,4 @@
-/* ── 振动即存在 · QualiaRhythmMatrix V7.2 · main.js ── */
+/* ── 振动即存在 · QualiaRhythmMatrix V7.3 · main.js · OPUS 4.7 ── */
 
 const TITLE_ZH = '振动即存在';
 const TITLE_EN = 'Vibration as Existence · QualiaRhythmMatrix';
@@ -157,7 +157,7 @@ const LOAD_MSGS = [
   '校准五维振动定义...',
   '初始化强排除论七问...',
   '论证伦理六律就绪...',
-  '执行三轴强制拆分...',
+  '执行三轴强制拆分 · Opus 4.7...',
   '生成裁决中...'
 ];
 
@@ -188,7 +188,6 @@ async function runAnalysis() {
   sbShow('sb-loading');
   startLoadCycle();
 
-  /* Vercel proxy URL — 已配置 */
   const PROXY_URL = 'https://qrm-proxy.vercel.app/api/analyze';
 
   try {
@@ -196,15 +195,15 @@ async function runAnalysis() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2200,
+        model: 'claude-opus-4-7',
+        max_tokens: 3000,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: '请分析这个命题：' + input }]
       })
     });
     stopLoadCycle();
     const data = await resp.json();
-    if (data.error) throw new Error(data.error.message || data.error);
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
     const raw = data.content?.[0]?.text || '';
     const r = JSON.parse(raw.replace(/```json|```/g, '').trim());
     renderResult(input, r);
@@ -292,7 +291,6 @@ function renderResult(prop, r) {
   const vc = document.getElementById('r-verdict-cite'); if(vc) vc.textContent = r.verdict_cite ? ('权威引用 · ' + r.verdict_cite) : '';
 }
 
-/* ── Three.js ── */
 const canvas   = document.getElementById('canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
