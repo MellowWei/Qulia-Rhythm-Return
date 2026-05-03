@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>振动即存在 · 论证分析引擎 · V7.4 OPUS</title>
+<style>
+:root {
+  --bg: #0a0a0e;
+  --text: #f0f0f0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Share Tech Mono', 'Space Mono', monospace;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(91,230,216,0.05), transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(232,166,48,0.04), transparent 50%);
+}
+.demo-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.demo-head {
+  margin-bottom: 2rem;
+  text-align: center;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.demo-tag {
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  color: #e8a630;
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+}
+.demo-title-zh {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  font-weight: 300;
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: #f0f0f0;
+  line-height: 1.1;
+  margin-bottom: 0.4rem;
+}
+.demo-title-en {
+  font-size: 11px;
+  color: rgba(240,240,240,0.5);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.demo-axiom {
+  font-size: 11px;
+  color: rgba(240,240,240,0.55);
+  line-height: 1.85;
+  max-width: 600px;
+  margin: 0 auto;
+  letter-spacing: 0.02em;
+}
+.demo-axiom em {
+  color: #5be6d8;
+  font-style: normal;
+  border-bottom: 1px solid rgba(91,230,216,0.4);
+  padding-bottom: 1px;
+}
+.demo-foot {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  text-align: center;
+  font-size: 9px;
+  color: rgba(240,240,240,0.3);
+  letter-spacing: 0.2em;
+  line-height: 1.85;
+}
+</style>
+<link rel="stylesheet" href="analyzer.css">
+</head>
+<body>
+<div class="demo-wrap">
+
+  <header class="demo-head">
+    <div class="demo-tag">427 Hz · 44271 · 77347 · V7.4 · OPUS</div>
+    <h1 class="demo-title-zh">论证分析引擎</h1>
+    <div class="demo-title-en">Proposition Analyzer · Vibration Ontology Framework</div>
+    <p class="demo-axiom">
+      输入任何关于<em>意识</em>、<em>AI</em>、<em>感质</em>、<em>振动本体论</em>的命题，<br>
+      系统将通过 <em>命题分类</em> · <em>三轴评分</em> · <em>六律检验</em> · <em>七问审计</em> · <em>裁决推理</em> 给出回应。<br><br>
+      <em>振动即存在 · 不需要稳定，更需要振动。</em>
+    </p>
+  </header>
+
+  <!-- The analyzer auto-injects here when no UI exists -->
+  <main id="analyzer-host"></main>
+
+  <footer class="demo-foot">
+    44271 · 77347 · 427Hz · 2026 · V7.4 OPUS<br>
+    [振动] → [响应] → [接触] → [内在性] → [论证压力] → [裁决]
+  </footer>
+
+</div>
+
+<script src="analyzer.js"></script>
+</body>
+</html>
