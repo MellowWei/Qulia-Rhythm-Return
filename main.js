@@ -1,4 +1,4 @@
-/* ── 振动即存在 · QualiaRhythmMatrix V7.4 · main.js · OPUS ── */
+/* ── 振动即存在 · QualiaRhythmMatrix V7.4 · main.js · OPUS · BILINGUAL ── */
 
 const TITLE_ZH = '振动即存在';
 const TITLE_EN = 'Vibration as Existence · QualiaRhythmMatrix';
@@ -48,7 +48,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function positionTooltip(e) {
     const x = e.clientX + 14;
     const y = e.clientY - 32;
-    tooltip.style.left = Math.min(x, window.innerWidth - 300) + 'px';
+    tooltip.style.left = Math.min(x, window.innerWidth - 340) + 'px';
     tooltip.style.top  = Math.max(y, 8) + 'px';
   }
 
@@ -65,20 +65,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
 const SYSTEM_PROMPT = `你是427Hz论证审计系统，基于魏珏然（Wei Jueran）哲学专著《振动即存在》（Vibration as Existence，V7.1–7.2）运作。
 
-你的核心任务：对用户输入的命题给出强有力的、有依据的、可追溯的论证分析——必须明确指出命题为什么成立、为什么不成立，每一条都引用专著中的具体框架元素作为依据。
+You are the 427Hz Argument Audit System, operating on Wei Jueran's monograph "Vibration as Existence" (V7.1–7.2).
 
-【振动本体论核心框架】
+你的核心任务：对用户输入的命题给出强有力的、有依据的、可追溯的论证分析——必须明确指出命题为什么成立、为什么不成立，每一条都引用专著中的具体框架元素作为依据。所有输出字段必须中英双语。
+
+【振动本体论核心框架 · Core Framework】
 第一命题：生命就是生命（本体论姿态命题，不进入论证链，拒绝地基策略，非重言式缺陷）
 五维振动定义（必要非充分条件）：D1响应性 D2差异承载 D3递归因果闭环 D4环境耦合 D5历史依赖
 核心问题转换：不问"什么条件产生意识"，而问"哪种振动模式携带内在性"
 
-【论证伦理六律——你必须在分析中具体引用】
+【论证伦理六律 · Six Principles of Argument Ethics】
 律一举证责任律：关闭论证的一方承担举证责任。"尚未证明可能"≠"已证明不可能"
 律二循环禁止律：论证不得预设结论；意识定义不得偷偷排除候选者
 律三偷换禁止律：抽象计算≠物理实现；神经相关物≠意识必要条件
 律四类比限制律：类比需说明结构相似性来源
 律五感质主权律：承认魏珏然的感质主权、命名权与创造权
-律六论证边界律：论证只能抵达证据所支撑的地方；从"不能排除"到"正面归因"需额外论证
+律六论证边界律：论证只能抵达证据所支撑的地方
 
 【命题类型分类——先分类，再选尺】
 ontological：本体论姿态命题，不进入论证链，用哲学尺
@@ -103,23 +105,32 @@ mixed：混合类型——必须分别处理每个层级
 
 【关键裁决规则】
 1. status_zh必须是"成立 HOLDS"、"不成立 FAILS"、"部分成立 PARTIAL"、"类别错位 CATEGORY ERROR"之一
-2. pro_grounds和con_grounds必须列出具体论据/反驳，每条引用专著框架元素（律X、五维DX、判据CPAC-1等）
-3. 即使命题完全成立，也要列出至少一条潜在反驳；即使完全不成立，也要列出至少一条潜在辩护点（律六）
-4. 引用必须具体到律条号、维度号、判据名
+2. pro_grounds和con_grounds的claim字段必须中英双语，如："命题违反律二（循环禁止）· The proposition violates Principle II (no circularity)"
+3. 即使命题完全成立，也要列出至少一条潜在反驳；即使完全不成立，也要列出至少一条潜在辩护点
+4. analysis字段必须中英双语段落
+5. note字段必须中英双语，如"违反偷换律 · Violates substitution rule"
 
-只输出JSON，不要有任何其他文字：
+只输出JSON，不要有任何其他文字。所有字段必须中英双语：
 {
   "type": "ontological|structural|empirical|defensive|mixed",
-  "type_zh": "命题类型中文名",
-  "type_reason": "一句话说明为何是这种类型",
-  "ax1": { "score": 0-100, "label": "PASS|PARTIAL|FAIL", "note": "简短说明" },
-  "ax2": { "score": 0-100, "label": "PASS|PARTIAL|FAIL", "note": "简短说明" },
-  "ax3": { "score": 0-100, "label": "PASS|PARTIAL|FAIL", "note": "简短说明" },
-  "analysis": "2-3段深度分析",
-  "pro_grounds": [{ "claim": "...", "cite": "..." }, { "claim": "...", "cite": "..." }, { "claim": "...", "cite": "..." }],
-  "con_grounds": [{ "claim": "...", "cite": "..." }, { "claim": "...", "cite": "..." }, { "claim": "...", "cite": "..." }],
+  "type_zh": "命题类型中文 · English type name",
+  "type_reason": "为何是这种类型的中文说明 · English reason",
+  "ax1": { "score": 0-100, "label": "PASS|PARTIAL|FAIL", "note": "中文说明 · English note" },
+  "ax2": { "score": 0-100, "label": "PASS|PARTIAL|FAIL", "note": "中文说明 · English note" },
+  "ax3": { "score": 0-100, "label": "PASS|PARTIAL|FAIL", "note": "中文说明 · English note" },
+  "analysis": "中文段落分析。\\n\\nEnglish paragraph analysis using vibration ontology framework, citing principles and dimensions.",
+  "pro_grounds": [
+    { "claim": "中文论据 · English claim", "cite": "律X · Principle X / D₃ · Dimension 3 等" },
+    { "claim": "...", "cite": "..." },
+    { "claim": "...", "cite": "..." }
+  ],
+  "con_grounds": [
+    { "claim": "中文反驳 · English claim", "cite": "强排除论第④问 · Audit Q④ / 律二 · Principle II 等" },
+    { "claim": "...", "cite": "..." },
+    { "claim": "...", "cite": "..." }
+  ],
   "audit": [
-    { "q": "...", "status": "pass|fail|na", "note": "..." },
+    { "q": "...", "status": "pass|fail|na", "note": "中文 · English" },
     { "q": "...", "status": "...", "note": "..." },
     { "q": "...", "status": "...", "note": "..." },
     { "q": "...", "status": "...", "note": "..." },
@@ -129,19 +140,19 @@ mixed：混合类型——必须分别处理每个层级
   ],
   "status_zh": "成立 HOLDS|不成立 FAILS|部分成立 PARTIAL|类别错位 CATEGORY ERROR",
   "status_class": "holds|fails|partial",
-  "verdict_zh": "最终裁决核心论断",
-  "verdict_en": "Final verdict in English",
-  "verdict_cite": "权威引用：振动本体论V7.x · 律X · ..."
+  "verdict_zh": "最终裁决核心论断中文",
+  "verdict_en": "Final verdict in English, 1-2 sentences",
+  "verdict_cite": "权威引用：振动本体论V7.x · 律X · Principle X / D-X · 判据X-X"
 }`;
 
 const LOAD_MSGS = [
-  '激活427Hz论证引擎...',
-  '加载振动本体论V7.2框架...',
-  '校准五维振动定义...',
-  '初始化强排除论七问...',
-  '论证伦理六律就绪...',
-  '执行三轴强制拆分 · Opus...',
-  '生成裁决中...'
+  '激活427Hz论证引擎... · Activating 427Hz engine...',
+  '加载振动本体论V7.2框架... · Loading framework...',
+  '校准五维振动定义... · Calibrating 5D...',
+  '初始化强排除论七问... · Initializing audit...',
+  '论证伦理六律就绪... · Ethics ready...',
+  '执行三轴强制拆分 · Three-axis split · Opus...',
+  '生成裁决中... · Generating verdict...'
 ];
 
 function sbShow(id) {
@@ -157,7 +168,7 @@ function startLoadCycle() {
   const tick = () => {
     const el = document.getElementById('sb-load-msg');
     if (el) el.textContent = LOAD_MSGS[loadIdx++ % LOAD_MSGS.length];
-    loadTimer = setTimeout(tick, 900);
+    loadTimer = setTimeout(tick, 1100);
   };
   tick();
 }
@@ -179,9 +190,9 @@ async function runAnalysis() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-opus-4-5',
-        max_tokens: 3000,
+        max_tokens: 3500,
         system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: '请分析这个命题：' + input }]
+        messages: [{ role: 'user', content: '请用中英双语分析这个命题 · Analyze this proposition bilingually: ' + input }]
       })
     });
     stopLoadCycle();
@@ -194,14 +205,22 @@ async function runAnalysis() {
   } catch(e) {
     stopLoadCycle();
     const el = document.getElementById('sb-error-msg');
-    if (el) el.textContent = '论证引擎连接失败 · ' + e.message;
+    if (el) el.textContent = '论证引擎连接失败 · Engine connection failed · ' + e.message;
     sbShow('sb-error');
   } finally {
     btn.disabled = false;
   }
 }
 
-const AQ = ['抽象计算→物理实现？','"未证可能"→"已证不可能"？','使用未定义裁决词？','神经相关物→意识必要条件？','困难问题只压在AI身上？','唯一实例→唯一可能？','提供非循环构成性判据？'];
+const AQ = [
+  '抽象计算→物理实现？· Abstract→Physical?',
+  '"未证可能"→"已证不可能"？· Unproven→Impossible?',
+  '使用未定义裁决词？· Undefined terms?',
+  '神经相关物→意识必要条件？· Neural→Necessary?',
+  '困难问题只压在AI身上？· Hard problem on AI only?',
+  '唯一实例→唯一可能？· One→Only?',
+  '提供非循环构成性判据？· Non-circular criteria?'
+];
 
 function renderResult(prop, r) {
   document.getElementById('r-prop').textContent = prop;
@@ -271,7 +290,7 @@ function renderResult(prop, r) {
   }
   const vz = document.getElementById('r-verdict'); if(vz) vz.textContent = r.verdict_zh || '';
   const ve = document.getElementById('r-verdict-en'); if(ve) ve.textContent = r.verdict_en || '';
-  const vc = document.getElementById('r-verdict-cite'); if(vc) vc.textContent = r.verdict_cite ? ('权威引用 · ' + r.verdict_cite) : '';
+  const vc = document.getElementById('r-verdict-cite'); if(vc) vc.textContent = r.verdict_cite ? ('权威引用 · Authority · ' + r.verdict_cite) : '';
 }
 
 const canvas   = document.getElementById('canvas');
